@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Livret de fête 2026 — Abbaye des Fusiliers de Denges</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bordeaux: #7a1020;
+      --gold:     #c9a84c;
+      --gold-lt:  #e8d49a;
+    }
+    body {
+      background: transparent;
+      font-family: 'Crimson Text', Georgia, serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      gap: 1rem;
+    }
+
+    /* ---------- titre ---------- */
+    .titre-bloc {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .35rem;
+      text-align: center;
+      margin-bottom: .2rem;
+    }
+    .titre-bloc h1 {
+      font-family: 'Cinzel', serif;
+      font-weight: 600;
+      font-size: clamp(1.15rem, 3.4vw, 1.75rem);
+      color: var(--bordeaux);
+      letter-spacing: .04em;
+      line-height: 1.25;
+    }
+    .titre-filet {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      color: var(--gold);
+      width: 100%;
+      max-width: 340px;
+    }
+    .titre-filet::before, .titre-filet::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, rgba(201,168,76,0), var(--gold), rgba(201,168,76,0));
+    }
+    .titre-filet span { font-size: .8rem; line-height: 1; }
+    .titre-sous {
+      font-style: italic;
+      font-size: .92rem;
+      color: #8a7a5c;
+    }
+
+    /* ---------- barre de navigation ---------- */
+    .controls-bottom {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      background: var(--bordeaux);
+      padding: .55rem 1.2rem;
+      border-radius: 40px;
+      border: 1px solid rgba(201,168,76,.3);
+      box-shadow: 0 3px 20px rgba(122,16,32,.35);
+    }
+    .btn {
+      background: none;
+      border: 1.5px solid var(--gold);
+      color: var(--gold);
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+      flex-shrink: 0;
+      font-family: inherit;
+      line-height: 1;
+    }
+    .btn:hover:not(:disabled) { background: var(--gold); color: var(--bordeaux); }
+    .btn:disabled { opacity: .3; cursor: default; }
+    .page-info {
+      font-family: 'Cinzel', serif;
+      font-size: .8rem;
+      color: var(--gold-lt);
+      letter-spacing: .08em;
+      white-space: nowrap;
+      min-width: 90px;
+      text-align: center;
+    }
+
+    /* ---------- page affichée ---------- */
+    .viewer {
+      width: 100%;
+      max-width: 780px;
+      background: #fff;
+      border: 1.5px solid var(--gold);
+      border-radius: 8px;
+      box-shadow: 0 6px 32px rgba(122,16,32,.13), 4px 4px 0 rgba(201,168,76,.15);
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      min-height: 220px;
+      display: block;
+    }
+    canvas { display: block; width: 100% !important; height: auto !important; }
+
+    .hint {
+      position: absolute;
+      left: 50%; bottom: 0;
+      transform: translate(-50%, 100%);
+      background: var(--bordeaux);
+      color: var(--gold-lt);
+      font-family: 'Cinzel', serif;
+      font-size: .68rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: .4rem 1rem;
+      border-radius: 20px 20px 0 0;
+      white-space: nowrap;
+      transition: transform .25s ease;
+      pointer-events: none;
+    }
+    .viewer:hover .hint, .viewer:focus-visible .hint { transform: translate(-50%, 0); }
+
+    .loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      gap: .8rem;
+      color: var(--bordeaux);
+      font-style: italic;
+      min-height: 200px;
+      z-index: 3;
+    }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--gold-lt);
+      border-top-color: var(--bordeaux);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading.hidden { display: none; }
+
+    /* ---------- vignettes ---------- */
+    .thumbnails {
+      display: flex;
+      gap: .5rem;
+      justify-content: center;
+      align-items: flex-start;
+      max-width: 780px;
+      width: 100%;
+      min-height: 74px;
+    }
+    .thumb {
+      width: 52px;
+      border: 2px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      overflow: hidden;
+      background: #fff;
+      transition: opacity .2s, border-color .2s;
+    }
+    .thumb canvas { display: block; width: 100% !important; height: auto !important; }
+    .thumb.active       { border-color: var(--gold); opacity: 1; }
+    .thumb.adjacent     { opacity: .45; }
+    .thumb.hidden-thumb { display: none; }
+
+    /* ---------- bouton ouvrir ---------- */
+    .ouvrir {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      background: var(--bordeaux);
+      color: var(--gold-lt);
+      font-family: 'Cinzel', serif;
+      font-size: .78rem;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: .7rem 1.5rem;
+      border-radius: 40px;
+      border: 1px solid rgba(201,168,76,.45);
+      box-shadow: 0 3px 16px rgba(122,16,32,.28);
+      transition: background .18s, color .18s;
+    }
+    .ouvrir:hover { background: var(--gold); color: var(--bordeaux); }
+
+    .note {
+      font-size: .8rem;
+      font-style: italic;
+      color: #999;
+      text-align: center;
+      max-width: 600px;
+    }
+
+    @media (max-width: 500px) {
+      .thumb { width: 38px; }
+      .controls-bottom { gap: .5rem; padding: .5rem .9rem; }
+      .ouvrir { font-size: .7rem; padding: .65rem 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="titre-bloc">
+    <h1>Découvre notre livret de fête</h1>
+    <div class="titre-filet"><span>&#10022;</span></div>
+    <p class="titre-sous">Abbaye des Fusiliers &middot; 8 &middot; 9 &middot; 10 août 2026</p>
+  </div>
+
+  <a class="viewer" id="viewer" href="Livret_de_fete_2026_web.pdf" target="_blank" rel="noopener"
+     title="Ouvrir le livret en PDF">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span id="loadingTxt">Chargement du livret…</span>
+    </div>
+    <canvas id="pdfCanvas"></canvas>
+    <div class="hint">Cliquer pour ouvrir le livret en PDF</div>
+  </a>
+
+  <div class="controls-bottom" id="controls-bottom">
+    <button class="btn" data-action="first" title="Première page">&laquo;</button>
+    <button class="btn" data-action="prev" title="Page précédente">&lsaquo;</button>
+    <span class="page-info" id="pageInfo-bottom">Page 1 / —</span>
+    <button class="btn" data-action="next" title="Page suivante">&rsaquo;</button>
+    <button class="btn" data-action="last" title="Dernière page">&raquo;</button>
+  </div>
+
+  <div class="thumbnails" id="thumbnails"></div>
+
+  <a class="ouvrir" id="ouvrirPdf" href="Livret_de_fete_2026_web.pdf" target="_blank" rel="noopener">
+    <span>&#128214;</span> Ouvrir le livret en grand
+  </a>
+
+  <p class="note">
+    Livret officiel de la Fête 2026 &mdash; programme donné sous réserve de modifications.
+  </p>
+
+<script>
+(function () {
+  'use strict';
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  /* ====== À MODIFIER SI LE PDF CHANGE DE NOM ====== */
+  var PDF_URL = 'Livret_de_fete_2026_web.pdf';
+  /* =============================================== */
+
+  var pdfDoc = null, currentPage = 1, total = 0;
+  var scale = 1.6;
+  var canvas = document.getElementById('pdfCanvas');
+  var ctx = canvas.getContext('2d');
+  var singleTask = null;
+
+  document.getElementById('viewer').href = PDF_URL;
+  document.getElementById('ouvrirPdf').href = PDF_URL;
+
+  function updateUI() {
+    document.getElementById('pageInfo-bottom').textContent = 'Page ' + currentPage + ' / ' + total;
+    document.querySelectorAll('.btn[data-action="first"], .btn[data-action="prev"]')
+      .forEach(function (b) { b.disabled = currentPage <= 1; });
+    document.querySelectorAll('.btn[data-action="last"], .btn[data-action="next"]')
+      .forEach(function (b) { b.disabled = currentPage >= total; });
+    updateThumbs();
+  }
+
+  function renderPage(n) {
+    document.getElementById('loading').classList.remove('hidden');
+    if (singleTask) { try { singleTask.cancel(); } catch (e) {} }
+    return pdfDoc.getPage(n).then(function (page) {
+      var vp = page.getViewport({ scale: scale });
+      canvas.width = vp.width;
+      canvas.height = vp.height;
+      singleTask = page.render({ canvasContext: ctx, viewport: vp });
+      return singleTask.promise;
+    }).then(function () {
+      document.getElementById('loading').classList.add('hidden');
+      updateUI();
+    }).catch(function (err) {
+      if (err && err.name === 'RenderingCancelledException') return;
+      console.error(err);
+    });
+  }
+
+  function go(n) {
+    if (!pdfDoc || n < 1 || n > total) return;
+    currentPage = n;
+    renderPage(currentPage);
+  }
+
+  document.getElementById('controls-bottom').addEventListener('click', function (e) {
+    var btn = e.target.closest('.btn');
+    if (!btn) return;
+    var a = btn.dataset.action;
+    if (a === 'first') go(1);
+    if (a === 'prev')  go(currentPage - 1);
+    if (a === 'next')  go(currentPage + 1);
+    if (a === 'last')  go(total);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') go(currentPage + 1);
+    if (e.key === 'ArrowLeft')  go(currentPage - 1);
+  });
+
+  /* ---------- vignettes (rendu à la demande) ---------- */
+
+  function updateThumbs() {
+    document.querySelectorAll('.thumb').forEach(function (t) {
+      var p = parseInt(t.dataset.page, 10);
+      if (p === currentPage) { t.className = 'thumb active'; }
+      else if (p === currentPage - 1 || p === currentPage + 1) { t.className = 'thumb adjacent'; }
+      else { t.className = 'thumb hidden-thumb'; }
+      if (!t.classList.contains('hidden-thumb') && !t.dataset.done) {
+        t.dataset.done = '1';
+        drawThumb(t, p);
+      }
+    });
+  }
+
+  function drawThumb(wrap, n) {
+    pdfDoc.getPage(n).then(function (page) {
+      var vp = page.getViewport({ scale: 0.16 });
+      var c = wrap.querySelector('canvas');
+      c.width = vp.width; c.height = vp.height;
+      page.render({ canvasContext: c.getContext('2d'), viewport: vp });
+    });
+  }
+
+  function buildThumbs() {
+    var container = document.getElementById('thumbnails');
+    for (var i = 1; i <= total; i++) {
+      var wrap = document.createElement('div');
+      wrap.className = 'thumb hidden-thumb';
+      wrap.dataset.page = i;
+      wrap.appendChild(document.createElement('canvas'));
+      wrap.addEventListener('click', function (e) {
+        e.stopPropagation();
+        go(parseInt(this.dataset.page, 10));
+      });
+      container.appendChild(wrap);
+    }
+    updateThumbs();
+  }
+
+  /* ---------- chargement ---------- */
+
+  var task = pdfjsLib.getDocument({ url: PDF_URL });
+  task.onProgress = function (p) {
+    if (p.total) {
+      var pct = Math.round(p.loaded / p.total * 100);
+      var el = document.getElementById('loadingTxt');
+      if (el && pct < 100) el.textContent = 'Chargement du livret… ' + pct + '\u00A0%';
+    }
+  };
+
+  task.promise.then(function (pdf) {
+    pdfDoc = pdf;
+    total = pdf.numPages;
+    buildThumbs();
+    renderPage(1);
+  }).catch(function (err) {
+    console.error(err);
+    document.getElementById('loading').innerHTML =
+      '<p style="color:#7a1020;padding:2rem;text-align:center">' +
+      '&#9888;&#65039; Impossible de charger le livret.</p>';
+  });
+
+})();
+</script>
+</body>
+</html>
