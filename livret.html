@@ -28,15 +28,16 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: .35rem;
+      gap: .55rem;
       text-align: center;
-      margin-bottom: .2rem;
+      margin-bottom: .1rem;
     }
     .titre-bloc h1 {
       font-family: 'Cinzel', serif;
       font-weight: 600;
       font-size: clamp(1.15rem, 3.4vw, 1.75rem);
-      color: var(--bordeaux);
+      color: var(--gold-lt);
+      text-shadow: 0 1px 3px rgba(0,0,0,.35);
       letter-spacing: .04em;
       line-height: 1.25;
     }
@@ -55,11 +56,6 @@
       background: linear-gradient(to right, rgba(201,168,76,0), var(--gold), rgba(201,168,76,0));
     }
     .titre-filet span { font-size: .8rem; line-height: 1; }
-    .titre-sous {
-      font-style: italic;
-      font-size: .92rem;
-      color: #8a7a5c;
-    }
 
     /* ---------- barre de navigation ---------- */
     .controls-bottom {
@@ -200,13 +196,6 @@
     }
     .ouvrir:hover { background: var(--gold); color: var(--bordeaux); }
 
-    .note {
-      font-size: .8rem;
-      font-style: italic;
-      color: #999;
-      text-align: center;
-      max-width: 600px;
-    }
 
     @media (max-width: 500px) {
       .thumb { width: 38px; }
@@ -220,7 +209,6 @@
   <div class="titre-bloc">
     <h1>Découvre notre livret de fête</h1>
     <div class="titre-filet"><span>&#10022;</span></div>
-    <p class="titre-sous">Abbaye des Fusiliers &middot; 8 &middot; 9 &middot; 10 août 2026</p>
   </div>
 
   <a class="viewer" id="viewer" href="Livret_de_fete_2026_web.pdf" target="_blank" rel="noopener"
@@ -247,9 +235,6 @@
     <span>&#128214;</span> Ouvrir le livret en grand
   </a>
 
-  <p class="note">
-    Livret officiel de la Fête 2026 &mdash; programme donné sous réserve de modifications.
-  </p>
 
 <script>
 (function () {
