@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#14291d" />
+    <meta
+      name="description"
+      content="Livret de fête 2026 de l'Abbaye des Fusiliers de Denges, à feuilleter en ligne."
+    />
+    <title>Livret de fête 2026 | Abbaye des Fusiliers de Denges</title>
+    <link rel="icon" href="./assets/cover.jpg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <header class="topbar">
+        <a class="identity" href="#page=1" aria-label="Revenir à la couverture">
+          <span class="identity__seal" aria-hidden="true">AFD</span>
+          <span class="identity__text">
+            <strong>Abbaye des Fusiliers</strong>
+            <small>Denges · Livret de fête 2026</small>
+          </span>
+        </a>
+
+        <div class="topbar__actions">
+          <a
+            class="icon-button icon-button--wide"
+            href="./assets/Livret_de_fete_2026_web.pdf"
+            download
+            aria-label="Télécharger le PDF"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+            </svg>
+            <span>PDF</span>
+          </a>
+          <button class="icon-button" id="fullscreenButton" type="button" aria-label="Passer en plein écran">
+            <svg class="icon-expand" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5" />
+            </svg>
+            <svg class="icon-collapse" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M8 3v5H3m13-5v5h5M8 21v-5H3m13 5v-5h5" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="viewer" id="viewer">
+        <div class="ambient ambient--one" aria-hidden="true"></div>
+        <div class="ambient ambient--two" aria-hidden="true"></div>
+
+        <div class="loading-panel" id="loadingPanel" role="status" aria-live="polite">
+          <img src="./assets/cover.jpg" alt="" />
+          <div class="loading-panel__copy">
+            <span class="spinner" aria-hidden="true"></span>
+            <strong>Ouverture du livret</strong>
+            <span id="loadingText">Préparation des pages…</span>
+          </div>
+        </div>
+
+        <div class="error-panel" id="errorPanel" hidden>
+          <span class="error-panel__mark" aria-hidden="true">!</span>
+          <h1>Le livret n’a pas pu s’ouvrir.</h1>
+          <p>Vous pouvez tout de même consulter le document original.</p>
+          <a href="./assets/Livret_de_fete_2026_web.pdf">Ouvrir le PDF</a>
+        </div>
+
+        <div class="book-stage" id="bookStage" aria-label="Lecteur du livret" hidden>
+          <div class="book" id="book">
+            <section class="paper paper--left" id="leftPaper" aria-label="Page de gauche">
+              <canvas id="leftCanvas"></canvas>
+              <div class="blank-page" aria-hidden="true"><span>AFD</span><small>1926 · 2026</small></div>
+            </section>
+            <div class="book__gutter" aria-hidden="true"></div>
+            <section class="paper paper--right" id="rightPaper" aria-label="Page de droite">
+              <canvas id="rightCanvas"></canvas>
+              <div class="blank-page" aria-hidden="true"><span>AFD</span><small>1926 · 2026</small></div>
+            </section>
+
+            <div class="flip-sheet" id="flipSheet" aria-hidden="true">
+              <div class="flip-face flip-face--front" id="flipFront">
+                <canvas></canvas>
+                <div class="blank-page"><span>AFD</span><small>1926 · 2026</small></div>
+              </div>
+              <div class="flip-face flip-face--back" id="flipBack">
+                <canvas></canvas>
+                <div class="blank-page"><span>AFD</span><small>1926 · 2026</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="gesture-hint" id="gestureHint" hidden>
+          <span class="gesture-hint__desktop">Cliquez sur une page ou utilisez les flèches</span>
+          <span class="gesture-hint__mobile">Glissez pour tourner la page</span>
+        </p>
+      </main>
+
+      <nav class="controls" aria-label="Navigation du livret">
+        <div class="controls__group controls__group--navigation">
+          <button class="control-button" id="firstButton" type="button" aria-label="Première page">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 5v14m12-13-7 6 7 6" /></svg>
+          </button>
+          <button class="control-button control-button--primary" id="previousButton" type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7" /></svg>
+            <span>Précédent</span>
+          </button>
+        </div>
+
+        <div class="page-status" id="pageStatus" aria-live="polite">Page 1</div>
+
+        <div class="controls__group controls__group--navigation">
+          <button class="control-button control-button--primary" id="nextButton" type="button">
+            <span>Suivant</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></svg>
+          </button>
+          <button class="control-button" id="lastButton" type="button" aria-label="Dernière page">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 5v14M6 6l7 6-7 6" /></svg>
+          </button>
+        </div>
+
+        <div class="controls__divider" aria-hidden="true"></div>
+
+        <div class="controls__group controls__group--zoom" aria-label="Zoom">
+          <button class="control-button" id="zoomOutButton" type="button" aria-label="Réduire">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 12h12" /></svg>
+          </button>
+          <button class="zoom-value" id="fitButton" type="button" title="Adapter à l’écran">100 %</button>
+          <button class="control-button" id="zoomInButton" type="button" aria-label="Agrandir">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12" /></svg>
+          </button>
+        </div>
+      </nav>
+
+      <noscript>
+        <div class="noscript-message">
+          JavaScript est nécessaire pour feuilleter le livret.
+          <a href="./assets/Livret_de_fete_2026_web.pdf">Ouvrir le PDF</a>
+        </div>
+      </noscript>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
